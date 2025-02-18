@@ -7,6 +7,7 @@ const methodOverride = require('method-override');
 const ejsMate = require('ejs-mate');
 const wrapAsync = require('./utils/wrapAsync');
 const ExpressError = require('./utils/ExpressError');
+const { listingSchema } = require('./schema');
 
 const MONGO_URL = 'mongodb://127.0.0.1:27017/airbnb';
 
@@ -32,6 +33,17 @@ app.use(express.static(path.join(__dirname, 'public'))); // Serve static files
 app.get('/', (req, res) => {
   res.send('Hello World');
 });
+
+// validateListing Middleware - Validate Listing Data before creating or updating
+const validateListing = (req, res, next) => {
+  let { error } = listingSchema.validate(req.body);
+  if (error) {
+    let errMsg = error.details.map((el) => el.message).join(',');
+    throw new ExpressError(400, errMsg);
+  } else {
+    next();
+  }
+};
 
 // Index Route
 app.get(
@@ -66,12 +78,10 @@ app.get(
 // Create Route - POST
 app.post(
   '/listings',
+  validateListing,
   wrapAsync(async (req, res, next) => {
-    if (!req.body.listing) {
-      throw new ExpressError(400, 'Send Valid Listing Data');
-    }
     const newListing = new Listing(req.body.listing);
-    const savedListing = await newListing.save();
+    await newListing.save();
     res.redirect('/listings');
   })
 );
@@ -82,10 +92,6 @@ app.get(
   wrapAsync(async (req, res) => {
     const { id } = req.params;
     const listing = await Listing.findById(id);
-    if (!listing) {
-      return res.status(404).send('Listing not found');
-    }
-
     res.render('listings/editListing.ejs', { listing });
   })
 );
@@ -93,6 +99,7 @@ app.get(
 // Update Route
 app.put(
   '/listings/:id',
+  validateListing,
   wrapAsync(async (req, res) => {
     if (!req.body.listing) {
       throw new ExpressError(400, 'Send Valid Listing Data');
@@ -134,7 +141,7 @@ app.use((err, req, res, next) => {
 });
 
 // Start Server
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server is running on: ${PORT}`);
 });
