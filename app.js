@@ -2,12 +2,13 @@ const express = require('express');
 const path = require('path');
 const app = express();
 const mongoose = require('mongoose');
-const Listing = require('./models/listings');
 const methodOverride = require('method-override');
 const ejsMate = require('ejs-mate');
 const wrapAsync = require('./utils/wrapAsync');
 const ExpressError = require('./utils/ExpressError');
-const { listingSchema } = require('./schema');
+const { listingSchema, reviewSchema } = require('./schema');
+const Listing = require('./models/listings');
+const Review = require('./models/reviews');
 
 const MONGO_URL = 'mongodb://127.0.0.1:27017/airbnb';
 
@@ -34,9 +35,21 @@ app.get('/', (req, res) => {
   res.send('Hello World');
 });
 
-// validateListing Middleware - Validate Listing Data before creating or updating
+// validateListing Middleware -
+
 const validateListing = (req, res, next) => {
   let { error } = listingSchema.validate(req.body);
+  if (error) {
+    let errMsg = error.details.map((el) => el.message).join(',');
+    throw new ExpressError(400, errMsg);
+  } else {
+    next();
+  }
+};
+
+// validateReviews Middleware
+const validateReviews = (req, res, next) => {
+  let { error } = reviewSchema.validate(req.body);
   if (error) {
     let errMsg = error.details.map((el) => el.message).join(',');
     throw new ExpressError(400, errMsg);
@@ -66,11 +79,10 @@ app.get(
   '/listings/:id',
   wrapAsync(async (req, res) => {
     const { id } = req.params;
-    const listing = await Listing.findById(id);
+    const listing = await Listing.findById(id).populate('reviews');
     if (!listing) {
       return res.status(404).send('Listing not found');
     }
-
     res.render('listings/showListing.ejs', { listing });
   })
 );
@@ -128,6 +140,35 @@ app.delete(
   })
 );
 
+// Create Reviews
+// POST Route
+app.post(
+  '/listings/:id/reviews',
+  validateReviews,
+  wrapAsync(async (req, res) => {
+    const listing = await Listing.findById(req.params.id);
+    const newReview = new Review(req.body.review);
+    listing.reviews.push(newReview);
+
+    await newReview.save();
+    await listing.save();
+
+    res.redirect(`/listings/${listing._id}`);
+  })
+);
+
+// Delete Review
+app.delete(
+  '/listings/:id/reviews/:reviewId',
+  wrapAsync(async (req, res) => {
+    const { id, reviewId } = req.params;
+    await Listing.findByIdAndUpdate(id, { $pull: { reviews: reviewId } });
+    await Review.findByIdAndDelete(reviewId);
+    res.redirect(`/listings/${id}`);
+  })
+);
+
+//  middleware to catch all routes
 app.all('*', (req, res, next) => {
   return next(new ExpressError(404, 'Page Not Found'));
 });
@@ -141,7 +182,7 @@ app.use((err, req, res, next) => {
 });
 
 // Start Server
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server is running on: ${PORT}`);
 });
