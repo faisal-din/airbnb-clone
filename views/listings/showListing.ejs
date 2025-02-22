@@ -19,7 +19,7 @@
         <p class="card-text"><%= listing.location %></p>
         <p class="card-text"><%= listing.country %></p>
       </div>
-
+      <% if (currentUser && listing.owner._id.equals(currentUser._id)) { %>
       <div class="btns">
         <form action="/listings/<%= listing._id %>/edit" method="GET">
           <button class="btn btn-danger edit-btn">Edit</button>
@@ -32,13 +32,14 @@
           <button class="btn btn-dark delete-btn">Delete</button>
         </form>
       </div>
-
+      <% } %>
       <hr />
     </div>
 
     <div class="reviews col-6 offset-2 mb-4">
-      <h4>Leave a review</h4>
+      <% if (currentUser ) { %>
 
+      <h4>Leave a review</h4>
       <form
         action="/listings/<%= listing.id %>/reviews"
         method="POST"
@@ -73,8 +74,8 @@
         </div>
         <button type="submit" class="btn btn-primary mt-4">Submit</button>
       </form>
-
       <hr />
+      <% } %>
 
       <h4>All Reviews</h4>
       <div class="reviews">
@@ -82,7 +83,7 @@
           <% listing.reviews.forEach(function(review) { %>
           <div class="card col-5 mb-3 ms-3 review-card">
             <div class="card-body">
-              <h6 class="card-title">John Doe</h6>
+              <h6 class="card-title">@<%= review.author.username %></h6>
               <p class="card-text"><b>Comment:</b> <%= review.comment %></p>
               <p class="card-title"><%= review.rating %> stars</p>
             </div>
