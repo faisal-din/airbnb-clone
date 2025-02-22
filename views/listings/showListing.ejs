@@ -9,16 +9,15 @@
         alt="listing_img"
       />
       <div class="card-body">
-        <p class="card-text">
-          <br />
-          <%= listing.description %>
-          <br />
-          Rs: <%= listing.price.toLocaleString("en-IN") %>
-          <br />
-          <%= listing.location %>
-          <br />
-          <%= listing.country %>
+        <p class="card-text mt-2">
+          <b>Owned by: </b><%= listing.owner.username %>
         </p>
+        <p class="card-text"><%= listing.description %></p>
+        <p class="card-text">
+          Rs: <%= listing.price.toLocaleString("en-IN") %>
+        </p>
+        <p class="card-text"><%= listing.location %></p>
+        <p class="card-text"><%= listing.country %></p>
       </div>
       <div class="btns">
         <form action="/listings/<%= listing._id %>/edit" method="GET">

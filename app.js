@@ -7,10 +7,14 @@ const ejsMate = require('ejs-mate');
 const ExpressError = require('./utils/ExpressError');
 const session = require('express-session');
 const flash = require('connect-flash');
+const passport = require('passport');
+const LocalStrategy = require('passport-local');
+const User = require('./models/user');
 
 // Routes
-const listingRoutes = require('./routes/listingsRoutes');
-const reviewRoutes = require('./routes/reviewRoutes');
+const listingRouter = require('./routes/listingsRoutes');
+const reviewRouter = require('./routes/reviewRoutes');
+const userRouter = require('./routes/userRoutes');
 
 const MONGO_URL = 'mongodb://127.0.0.1:27017/airbnb';
 
@@ -48,20 +52,43 @@ app.get('/', (req, res) => {
   res.send('Hello World');
 });
 
+// Session Configuration
 app.use(session(sessionOptions));
 app.use(flash());
 
+// Passport Configuration
+app.use(passport.initialize());
+app.use(passport.session());
+passport.use(new LocalStrategy(User.authenticate()));
+
+// Passport Serialization and Deserialization
+passport.serializeUser(User.serializeUser());
+passport.deserializeUser(User.deserializeUser());
+
+// Flash Middleware
 app.use((req, res, next) => {
   res.locals.success = req.flash('success');
   res.locals.error = req.flash('error');
+  res.locals.currentUser = req.user;
   next();
 });
 
+//
+// app.get('/demoUser', async (req, res) => {
+//   const fakeUser = new User({ email: 'demo@gmail.com', username: 'demo-user' });
+//   const registeredUser = await User.register(fakeUser, 'myPassword');
+
+//   res.send(registeredUser);
+// });
+
 // listing Routes
-app.use('/listings', listingRoutes);
+app.use('/listings', listingRouter);
 
 // Review routes
-app.use('/listings/:id/reviews', reviewRoutes);
+app.use('/listings/:id/reviews', reviewRouter);
+
+// User Routes
+app.use('/', userRouter);
 
 //  middleware to catch all routes
 app.all('*', (req, res, next) => {
