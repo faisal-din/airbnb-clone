@@ -34,6 +34,10 @@
           <div class="invalid-feedback">Please write a short description.</div>
         </div>
         <div class="mb-3">
+          <p>Original Listing Image</p>
+          <img src="<%= listing.image.url %>" alt="listing_img" />
+        </div>
+        <div class="mb-3">
           <label for="image" class="form-label">Upload New Image</label>
           <input
             name="listing[image]"
