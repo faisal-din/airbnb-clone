@@ -8,6 +8,9 @@ const {
   isLoggedIn,
   isOwner,
 } = require('../middlewares/middlewares');
+const multer = require('multer');
+const { storage } = require('../cloudConfig');
+const upload = multer({ storage });
 
 // Controller
 const listingController = require('../controllers/listingController');
@@ -26,6 +29,7 @@ router.get('/:id', wrapAsync(listingController.showListing));
 router.post(
   '/',
   isLoggedIn,
+  upload.single('listing[image]'),
   validateListing,
   wrapAsync(listingController.createListing)
 );

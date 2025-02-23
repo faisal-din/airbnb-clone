@@ -1,3 +1,7 @@
+if (process.env.NODE_ENV !== 'production') {
+  require('dotenv').config();
+}
+
 const express = require('express');
 const path = require('path');
 const app = express();
@@ -81,13 +85,9 @@ app.use((req, res, next) => {
 //   res.send(registeredUser);
 // });
 
-// listing Routes
+// Routes
 app.use('/listings', listingRouter);
-
-// Review routes
 app.use('/listings/:id/reviews', reviewRouter);
-
-// User Routes
 app.use('/', userRouter);
 
 //  middleware to catch all routes
