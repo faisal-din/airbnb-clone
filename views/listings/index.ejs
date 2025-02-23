@@ -3,10 +3,6 @@
 <body>
   <h2>All Listings</h2>
 
-  <!-- <form action="/listings/new" method="GET">
-    <button>Create New Listing</button>
-  </form> -->
-
   <div class="row row-cols-1 row-cols-md-3 g-4">
     <% for (const listing of allListings) { %>
     <a href="/listings/<%= listing._id %>" class="listing-link">

@@ -45,8 +45,10 @@ router.get(
 // Update Route
 router.put(
   '/:id',
-  validateListing,
   isLoggedIn,
+  isOwner,
+  upload.single('listing[image]'),
+  validateListing,
   wrapAsync(listingController.updateListing)
 );
 

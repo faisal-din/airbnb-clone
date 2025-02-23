@@ -32,7 +32,6 @@ module.exports.showListing = async (req, res) => {
 module.exports.createListing = async (req, res, next) => {
   let url = req.file.path;
   let filename = req.file.filename;
-  console.log(url, '..', filename);
   const newListing = new Listing(req.body.listing);
   newListing.owner = req.user._id;
   newListing.image = { url, filename };
@@ -53,7 +52,7 @@ module.exports.renderEditForm = async (req, res) => {
 
 module.exports.updateListing = async (req, res) => {
   const { id } = req.params;
-  await Listing.findByIdAndUpdate(
+  let updatedListing = await Listing.findByIdAndUpdate(
     id,
     { ...req.body.listing },
     {
@@ -61,6 +60,12 @@ module.exports.updateListing = async (req, res) => {
       new: true,
     }
   );
+  if (typeof req.file !== 'undefined') {
+    let url = req.file.path;
+    let filename = req.file.filename;
+    updatedListing.image = { url, filename };
+    await updatedListing.save();
+  }
   req.flash('success', ' Listing Updated!');
   res.redirect(`/listings/${id}`);
 };
