@@ -20,14 +20,14 @@ const listingRouter = require('./routes/listingsRoutes');
 const reviewRouter = require('./routes/reviewRoutes');
 const userRouter = require('./routes/userRoutes');
 
-const MONGO_URL = 'mongodb://127.0.0.1:27017/airbnb';
+const dbURL = process.env.MONGO_URL;
 
 main()
   .then(() => console.log('MongoDB Connected...'))
   .catch((err) => console.log(err));
 
 async function main() {
-  await mongoose.connect(MONGO_URL);
+  await mongoose.connect(dbURL);
 }
 
 // Set EJS as the template engine
@@ -42,7 +42,7 @@ app.use(methodOverride('_method'));
 app.use(express.static(path.join(__dirname, 'public'))); // Serve static files
 
 const sessionOptions = {
-  secret: 'mysecret',
+  secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: true,
   cookie: {
