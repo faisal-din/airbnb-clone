@@ -49,6 +49,11 @@ const listingSchema = new Schema({
       required: true,
     },
   },
+  // category: {
+  //   type: String,
+  //   enum: ['Apartment', 'House', 'Cottage', 'Villa', 'Mansion'],
+  //   required: true,
+  // },
 });
 
 listingSchema.post('findOneAndDelete', async (listing) => {
